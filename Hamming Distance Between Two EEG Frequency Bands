@@ -1,0 +1,207 @@
+import cv2
+import imagehash
+import numpy as np
+from PIL import Image
+import matplotlib.pyplot as plt
+import os
+
+# === CONFIGURE FILE PATHS ===
+video1_path = r'eeglab_toolbox\eeg_video_subject5_trial4_Normalized.avi'
+video2_path = r'eeglab_toolbox\eeg_video_subject6_trial4_Normalized.avi'
+
+# === THRESHOLDS ===
+lower_threshold = 0.15  # Highly synchronized
+upper_threshold = 0.35  # Highly different
+
+# === OUTPUT FOLDER FOR HIGHLIGHTED FRAMES ===
+output_dir = 'highlighted_frames'
+os.makedirs(output_dir, exist_ok=True)
+
+# === CHECK FILE EXISTENCE ===
+print("Video 1 exists:", os.path.exists(video1_path))
+print("Video 2 exists:", os.path.exists(video2_path))
+
+# === BLOB DETECTION FUNCTION ===
+def detect_blobs(gray_frame):
+    params = cv2.SimpleBlobDetector_Params()
+    params.filterByArea = True
+    params.minArea = 50
+    params.maxArea = 3000
+    detector = cv2.SimpleBlobDetector_create(params)
+    keypoints = detector.detect(gray_frame)
+    return cv2.drawKeypoints(gray_frame, keypoints, np.array([]), (255, 255, 0),
+                             cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+
+Hamming
+
+def compute_and_highlight(video1, video2, lower_thresh, upper_thresh):
+    cap1 = cv2.VideoCapture(video1)
+    cap2 = cv2.VideoCapture(video2)
+
+    if not cap1.isOpened() or not cap2.isOpened():
+        print("Error opening videos.")
+        return []
+
+    hamming_distances = []
+    frame_index = 0
+
+    while True:
+        ret1, frame1 = cap1.read()
+        ret2, frame2 = cap2.read()
+
+        if not ret1 or not ret2:
+            break
+
+        # Convert to grayscale PIL images for hashing
+        img1 = Image.fromarray(cv2.cvtColor(frame1, cv2.COLOR_BGR2GRAY))
+        img2 = Image.fromarray(cv2.cvtColor(frame2, cv2.COLOR_BGR2GRAY))
+
+        # Compute perceptual hashes and Hamming distance
+        hash1 = imagehash.phash(img1)
+        hash2 = imagehash.phash(img2)
+        distance = hash1 - hash2
+        normalized = distance / len(hash1.hash)**2
+        hamming_distances.append(normalized)
+
+        # === Highlight frame if it exceeds thresholds ===
+        if normalized > upper_thresh:
+            label = f"Hamming: {normalized:.2f} (Desync)"
+            color = (0, 0, 255)  # Red
+        elif normalized < lower_thresh:
+            label = f"Hamming: {normalized:.2f} (Sync)"
+            color = (0, 255, 0)  # Green
+        else:
+            frame_index += 1
+            continue  # Skip saving if within neutral zone
+
+        # === BLOB DETECTION on significant frames ===
+        gray1 = cv2.cvtColor(frame1, cv2.COLOR_BGR2GRAY)
+        gray2 = cv2.cvtColor(frame2, cv2.COLOR_BGR2GRAY)
+        blob_frame1 = detect_blobs(gray1)
+        blob_frame2 = detect_blobs(gray2)
+
+        # Add label and draw text
+        cv2.putText(blob_frame1, label, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2)
+        cv2.putText(blob_frame2, label, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2)
+
+        # Combine and save
+        combined = np.hstack((blob_frame1, blob_frame2))
+        save_path = os.path.join(output_dir, f"highlighted_frame_{frame_index}.png")
+        cv2.imwrite(save_path, combined)
+
+        frame_index += 1
+
+    cap1.release()
+    cap2.release()
+    print(f"Compared {frame_index} frames.")
+    return hamming_distances
+
+# === RUN ANALYSIS ===
+hamming_values = compute_and_highlight(video1_path, video2_path, lower_threshold, upper_threshold)
+
+%Compared 4500 frames.
+
+# === PLOT RESULTS ===
+if hamming_values:
+    plt.plot(hamming_values, label='Hamming Distance')
+    plt.axhline(upper_threshold, color='red', linestyle='--', label='Upper Threshold (Desync)')
+    plt.axhline(lower_threshold, color='green', linestyle='--', label='Lower Threshold (Sync)')
+    plt.title("Hamming Distance Between Two EEG Frequency Bands")
+    plt.xlabel("Frame")
+    plt.ylabel("Normalized Hamming Distance")
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()
+else:
+    print("No data to plot.")
+
+# Generating Video
+
+# === CONFIGURE PATHS ===
+video1_path = r'eeglab_toolbox\eeg_video_subject5_trial4_Normalized.avi'
+video2_path = r'eeglab_toolbox\eeg_video_subject6_trial4_Normalized.avi'
+output_video_path = r'eeglab_toolbox\Results\blob_comparison_output_5-04_6-04.avi'
+
+%Analysing limited frames, due to limited computing power
+# === PARAMETERS ===
+MAX_FRAMES = 500  # Limit number of frames to process
+
+# === CHECK FILES ===
+if not os.path.exists(video1_path) or not os.path.exists(video2_path):
+    raise FileNotFoundError("Check your input video paths.")
+
+%Deciding blob's filter by area
+# === BLOB DETECTION FUNCTION ===
+def detect_blobs(gray_frame):
+    params = cv2.SimpleBlobDetector_Params()
+    params.filterByArea = True
+    params.minArea = 50
+    params.maxArea = 3000
+    detector = cv2.SimpleBlobDetector_create(params)
+    keypoints = detector.detect(gray_frame)
+    return cv2.drawKeypoints(gray_frame, keypoints, np.array([]), (0, 0, 255),
+                             cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+
+# === INITIALIZE VIDEO READERS ===
+cap1 = cv2.VideoCapture(video1_path)
+cap2 = cv2.VideoCapture(video2_path)
+
+if not cap1.isOpened() or not cap2.isOpened():
+    raise RuntimeError("One or both videos couldn't be opened.")
+
+%Ask OpenCV to fetch the frames per second (FPS) of video
+fps = int(cap1.get(cv2.CAP_PROP_FPS))
+
+# === OUTPUT VIDEO WRITER (initialized after first frame) ===
+out = None
+
+# === PROCESS AND WRITE FRAMES ===
+frame_count = 0
+while frame_count < MAX_FRAMES:
+    ret1, frame1 = cap1.read()
+    ret2, frame2 = cap2.read()
+
+    if not ret1 or not ret2:
+        print("End of one of the videos.")
+        break
+
+    gray1 = cv2.cvtColor(frame1, cv2.COLOR_BGR2GRAY)
+    gray2 = cv2.cvtColor(frame2, cv2.COLOR_BGR2GRAY)
+
+
+    # Detect blobs (output is already in BGR)
+    blob_frame1 = detect_blobs(gray1)
+    blob_frame2 = detect_blobs(gray2)
+
+    # Add text labels directly
+    cv2.putText(blob_frame1, "Video 1", (10, 30),
+                cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+    cv2.putText(blob_frame2, "Video 2", (10, 30),
+                cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+
+    # Combine frames side-by-side
+    combined = np.hstack((blob_frame1, blob_frame2))
+
+
+    # Initialize writer with correct dimensions
+    if out is None:
+        height, width = combined.shape[:2]
+        fourcc = cv2.VideoWriter_fourcc(*'MJPG')
+        out = cv2.VideoWriter(output_video_path, fourcc, fps, (width, height))
+
+    out.write(combined)
+
+    frame_count += 1
+    if frame_count % 50 == 0:
+        print(f"Processed {frame_count} frames...")
+
+%Generate Video
+
+# === CLEANUP ===
+cap1.release()
+cap2.release()
+if out:
+    out.release()
+
+print(f"✅ Finished writing output video:\n{output_video_path}")
