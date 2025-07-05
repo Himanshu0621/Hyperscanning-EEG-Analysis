@@ -27,5 +27,4 @@ This project extends the functionality of [**EEGLAB**](https://sccn.ucsd.edu/eeg
 
 ---
 
-## 📁 Folder Structure
 
