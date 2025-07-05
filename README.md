@@ -1,51 +1,31 @@
-# 🧠 Hyperscanning EEG Analysis with Blob Detection and Hamming Distance
+# 🧠 Hyperscanning EEG Analysis with EEGLAB and Python
 
-This project explores **EEG hyperscanning** — simultaneous EEG recordings from two subjects — to analyze synchrony and desynchrony of neural activity through **video generation, 3D visualization**, and **perceptual hashing-based comparison**.
+[![GitHub issues](https://img.shields.io/github/issues/sccn/eeglab?color=%23fa251e&logo=GitHub)](https://github.com/sccn/eeglab/issues)  
+![Twitter Follow](https://img.shields.io/twitter/follow/eeglab2?style=social)
 
-## 📁 Project Overview
-
-This pipeline is part of the _Neural and Cognitive Systems_ coursework and includes:
-
-- Normalized EEG-based video generation for multiple subjects
-- Isosurface rendering of EEG video in 3D (space × time)
-- Comparison using perceptual hashes and Hamming distance
-- Threshold-based blob detection on synchronized/desynchronized frames
-- Final combined output video highlighting major differences
+This project extends the functionality of [**EEGLAB**](https://sccn.ucsd.edu/eeglab/index.php), an open-source MATLAB toolbox for EEG analysis, by building a complete pipeline for **EEG hyperscanning**, **video generation**, **isosurface visualization**, **perceptual similarity analysis**, and **blob detection** using both **MATLAB** and **Python**.
 
 ---
 
-## 🧠 Key Components
+## 📘 Contents
 
-### 1. **Data**
-- Source: `Subjects_08` EEG dataset (zipped)
-- Format: Cleaned `.mat` EEG recordings for 8 subjects
-- Tools: EEGLAB Toolbox (`EEGLAB_Tutorial.zip`)
+- EEG Video Generation using EEGLAB & custom MATLAB code
+- EEG Normalization using Z-scores
+- 3D Volume Isosurface Visualization (Video to 3D)
+- Perceptual Hashing & Hamming Distance between videos
+- Highlighting synchronized vs desynchronized EEG frames
+- Blob Detection & Annotated Video Output
+- Comparison using Subject 5 & Subject 6 (4 trials each)
 
-### 2. **EEG Video Generator (MATLAB)**
-- Uses bandpass filtering (Theta: 4–8 Hz)
-- Global normalization (`z = (x - μ) / σ`)
-- Generates `.avi` EEG videos for Subjects 5 & 6, Trials 1–4
-- Frame rate: 20 fps, duration: 180 seconds
+---
 
-### 3. **Isosurface 3D Visualization (MATLAB)**
-- Converts EEG videos into 3D volumes
-- Applies Gaussian smoothing
-- Extracts isosurface with adjustable transparency
-- Plots 3D structure using `patch()` and `isonormals()`
+## 🧠 What is EEGLAB?
 
-### 4. **Perceptual Hashing & Hamming Analysis (Python)**
-- Compares pairs of EEG videos (Subject 5 vs 6)
-- Computes **normalized Hamming distance** per frame
-- Thresholds:
-  - **< 0.15** → Synchronized
-  - **> 0.35** → Desynchronized
-- Significant frames are labeled and stored
+[EEGLAB](https://sccn.ucsd.edu/eeglab/index.php) is an open-source MATLAB toolbox for electrophysiological signal processing. It supports data loading, preprocessing, ICA decomposition, time-frequency analysis, and more.
 
-### 5. **Blob Detection & Comparison Video (Python + OpenCV)**
-- Applies blob detection on synced/desynced frames
-- Combines both subject videos side-by-side
-- Overlays Hamming score, color-coded blobs
-- Exports comparison video (e.g., `blob_comparison_output_5-04_6-04.avi`)
+> _Delorme, A., & Makeig, S. (2004). [EEGLAB: an open source toolbox for analysis of single-trial EEG dynamics including independent component analysis](http://sccn.ucsd.edu/eeglab/download/eeglab_jnm03.pdf)._ *Journal of neuroscience methods, 134(1), 9–21.*
 
+---
 
+## 📁 Folder Structure
 
