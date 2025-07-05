@@ -1,0 +1,70 @@
+%%% EEG Hyperscanning Video Generator for Subject 5 & 6, 4 Trials Each
+close all; clear; clc;
+
+%%% Add EEG Lab and Data Paths
+basePath = 'Hyperscanning Project Data (1)\Hyperscanning Project Data';
+addpath(fullfile(basePath));
+addpath(fullfile(basePath, 'EEGLAB_Tutorial', 'EEGLAB_Tutorial', 'eeglab_toolbox'));
+
+%%% Load EEG channel locations
+load(fullfile(basePath, 'EEGLAB_Tutorial', 'EEGLAB_Tutorial', 'gtec_eeglab_64chanlocs'));  % loads 'chanlocs'
+
+%%% Start EEGLAB without GUI
+eeglab('nogui');
+
+%%% Define subject files (only 5 and 6 used here)
+subjectIDs = [5, 6];
+fileList = {
+    'subject_01_cleaned.mat',
+    'subject_02_cleaned.mat',
+    'subject_03_cleaned.mat',
+    'subject_04_cleaned.mat',
+    'subject_05_cleaned.mat',
+    'subject_06_cleaned.mat',
+    'subject_07_cleaned.mat',
+    'subject_08_cleaned.mat'
+};
+
+%%% Loop through each subject and trial
+for subjectNum = subjectIDs
+    % Load subject file
+    dataFile = fullfile(basePath, fileList{subjectNum});
+    load(dataFile);  % loads `data{1}` to `data{4}`
+
+    for trialNum = 1:4
+        eeg = double(data{trialNum});
+
+        % Bandpass filter (Theta 4–8 Hz)
+        b = fir1(1000, [4 8]/(250/2), 'bandpass');
+        eeg = filtfilt(b, 1, eeg.').';
+
+        % Downsample (factor 10)
+        eeg = eeg(:, 1:10:end);
+
+        % Normalize EEG across all values
+        global_mean = mean(eeg(:));
+        global_std = std(eeg(:));
+        eeg = (eeg - global_mean) / global_std;
+
+        % Create video writer
+        videoName = ['eeg_video_subject', num2str(subjectNum), '_trial', num2str(trialNum), '_Normalized.avi'];
+        videoObject = VideoWriter(videoName, 'Motion JPEG AVI');
+        videoObject.Quality = 75;
+        videoObject.FrameRate = 20;
+        open(videoObject);
+
+        % Create topography video
+        figure;
+        for timePoint = 1:(25 * 180)  % 180 seconds at 25 Hz = 4500 frames
+            topoplot(eeg(:, timePoint), chanlocs, 'maplimits', [-3, 3]);
+            colormap turbo;
+            frame = getframe(gcf);
+            writeVideo(videoObject, frame);
+            clf;
+        end
+
+        close(videoObject);
+        close all;
+        fprintf('Saved: %s\n', videoName);
+    end
+end
