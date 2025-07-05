@@ -1,4 +1,4 @@
-# 🧠 Hyperscanning EEG Analysis with EEGLAB and Python
+# 🧠 Hyperscanning EEG Analysis with EEGLAB, MATLAB and Python
 
 [![GitHub issues](https://img.shields.io/github/issues/sccn/eeglab?color=%23fa251e&logo=GitHub)](https://github.com/sccn/eeglab/issues)  
 ![Twitter Follow](https://img.shields.io/twitter/follow/eeglab2?style=social)
