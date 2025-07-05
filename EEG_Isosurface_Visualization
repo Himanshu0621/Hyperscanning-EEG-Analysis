@@ -1,0 +1,61 @@
+%The code is Generated from ChatGPT for understanding purpose 
+function EEG_Isosurface_Visualization
+    % Load AVI file
+    VideoFile = 'EEG\eeg_video_subject6_trial1_Normalized.avi';
+    Video = VideoReader(VideoFile);
+
+    % Set exact target dimensions to avoid mismatch
+    targetHeight = 100;  % choose based on your system capacity
+    targetWidth = 100;
+    frame_skip = 4;      % skip every n frames to save memory
+
+    % Set up frame counts
+    totalFrames = floor(Video.Duration * Video.FrameRate);
+    selectedFrames = 1:frame_skip:totalFrames;
+    Time_Frames = length(selectedFrames);
+
+    % Preallocate memory for the EEG volume
+    EEG_volume = zeros(targetHeight, targetWidth, Time_Frames);
+
+    idx = 1;
+    frame_num = 0;
+
+    while hasFrame(Video) && idx <= Time_Frames
+        frame_num = frame_num + 1;
+        frame = readFrame(Video);
+
+        if ismember(frame_num, selectedFrames)
+            gray = rgb2gray(frame);
+            small = imresize(gray, [targetHeight, targetWidth]);  % resize to fixed dimensions
+            EEG_volume(:,:,idx) = imgaussfilt(im2double(small), 1);  % smooth & normalize
+            idx = idx + 1;
+        end
+    end
+
+    % Create meshgrid (based on reduced size)
+    [x, y, z] = meshgrid(1:targetWidth, 1:targetHeight, 1:Time_Frames);
+
+    % Isosurface threshold
+    iso_val = 0.6;
+
+    % Plotting
+    figure;
+    ax = axes('Position', [0.1 0.1 0.8 0.8]);
+    axis(ax, 'vis3d');
+    view(ax, 3);
+    colormap('gray');
+
+    p = patch(isosurface(x, y, z, EEG_volume, iso_val));
+    isonormals(x, y, z, EEG_volume, p);
+    p.FaceColor = 'cyan';
+    p.EdgeColor = 'none';
+    p.FaceAlpha = 0.5;
+
+    camlight(ax, 'left');
+    camlight(ax, 'right');
+    lighting(ax, 'gouraud');
+    material dull;
+
+    title(ax, 'Downsampled EEG Volume Isosurface');
+    xlabel('X'); ylabel('Y'); zlabel('Time');
+end
