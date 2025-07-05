@@ -27,4 +27,14 @@ This project extends the functionality of [**EEGLAB**](https://sccn.ucsd.edu/eeg
 
 ---
 
+## 🧠 Based On EEGLAB
+
+This project builds upon [EEGLAB](https://sccn.ucsd.edu/eeglab/) — an open-source MATLAB toolbox for EEG signal processing by Delorme & Makeig et al., UCSD.
+
+**Original EEGLAB components** are used under the GNU GPL license and credited to the authors. See `LICENSE` and original source headers (e.g., `eeglab.m`) for full attribution.
+
+We have added:
+- MATLAB-based blob processing for hyperscanning EEG
+- EEG-based video generation using perceptual hashing
+- Python post-processing utilities for CNN classification of EEG blobs
 
