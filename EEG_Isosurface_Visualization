@@ -1,4 +1,3 @@
-%The code is Generated from ChatGPT for understanding purpose 
 function EEG_Isosurface_Visualization
     % Load AVI file
     VideoFile = 'EEG\eeg_video_subject6_trial1_Normalized.avi';
