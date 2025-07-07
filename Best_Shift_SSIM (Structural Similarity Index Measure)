@@ -1,0 +1,68 @@
+Almost out of storage … If you run out, you can't create, edit, and upload files.
+from skimage.metrics import structural_similarity as ssim
+import cv2
+import matplotlib.pyplot as plt
+import os
+import numpy as np
+
+#This code performs a shift with the videos of trial 1 subject 1 and 2 to see if 
+#in a certain moment there is a beter match of the frames 
+
+# Setup 
+video1_path = r'eeg_video_subject1_trialNumber1_NormalizedAllData.avi'
+video2_path = r'eeg_video_subject2_trialNumber1_NormalizedAllData.avi'
+max_shift = 10  # Test shifts from -10 to +10
+
+# Load all frames into memory 
+def load_grayscale_frames(video_path):  
+    cap = cv2.VideoCapture(video_path)  
+    frames = []
+
+    while cap.isOpened():
+        ret, frame = cap.read()
+        if not ret:
+            break
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        frames.append(gray)
+
+    cap.release()
+    return frames
+
+frames1 = load_grayscale_frames(video1_path)  #Gray scale frames video 1
+frames2 = load_grayscale_frames(video2_path)  #Gray scale frames video 2
+
+num_frames = min(len(frames1), len(frames2))
+
+# Compute SSIM in every shift
+shift_range = range(-max_shift, max_shift + 1)
+shifted_ssim_avgs = {}
+
+for shift in shift_range:
+    ssim_values = []
+
+    # Determine valid index ranges
+    if shift >= 0: #Frame from video 2 is ahead of frames from video 1 
+        for i in range(num_frames - shift):
+            score, _ = ssim(frames1[i], frames2[i + shift], full=True)
+            ssim_values.append(score)
+    else: #Frame from video 2 is behind of frames from video 1 
+        for i in range(num_frames + shift):  # shift is negative
+            score, _ = ssim(frames1[i - shift], frames2[i], full=True)
+            ssim_values.append(score)
+
+    avg_ssim = np.mean(ssim_values)
+    shifted_ssim_avgs[shift] = avg_ssim
+    print(f"Shift {shift}: Avg SSIM = {avg_ssim:.4f}")
+
+# Plot the shift vs SSIM graph
+plt.figure(figsize=(10, 5))
+plt.plot(list(shifted_ssim_avgs.keys()), list(shifted_ssim_avgs.values()), marker='o', color='blue')
+plt.xlabel("Frame Shift (video2 relative to video1)")
+plt.ylabel("Average SSIM")
+plt.title("Average SSIM vs Frame Shift")
+plt.grid(True)
+plt.axvline(0, linestyle='--', color='gray', label='No shift')
+plt.legend()
+plt.tight_layout()
+plt.savefig('ssim_vs_shift.png', dpi=300)
+plt.show()
